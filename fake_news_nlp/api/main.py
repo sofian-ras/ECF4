@@ -20,10 +20,6 @@ nltk.download("stopwords", quiet=True)
 
 load_dotenv()
 
-# ---------------------------------------------------------------------------
-# chargement du modèle et du vectoriseur (une seule fois au démarrage)
-# ---------------------------------------------------------------------------
-
 MODEL_PATH = os.getenv("MODEL_PATH", "../models/best_model.keras")
 VECTORIZER_PATH = os.getenv("VECTORIZER_PATH", "../models/vectorizer.pkl")
 
@@ -39,9 +35,7 @@ except Exception as e:
     vectorizer = None
     nlp = None
 
-# ---------------------------------------------------------------------------
 # pipeline de nettoyage (identique au notebook)
-# ---------------------------------------------------------------------------
 
 negation_words = {"not", "no", "never", "neither"}
 stop_words = set(stopwords.words("english")) - negation_words
@@ -106,7 +100,7 @@ def predict_one(title: str) -> dict:
     cleaned = clean_title(title)
     vector = vectorizer.transform([cleaned]).toarray()
     score = float(model.predict(vector, verbose=0).flatten()[0])
-    label = "real" if score >= 0.5 else "fake"
+    label = "REAL" if score >= 0.5 else "FAKE"
     confidence = round(score if score >= 0.5 else 1 - score, 4)
     return {"title": title, "label": label, "confidence": confidence}
 

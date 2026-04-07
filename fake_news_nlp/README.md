@@ -1,106 +1,174 @@
-# fake news nlp — détection automatique de désinformation
+# fake news nlp - detection automatique de desinformation
 
-pipeline nlp complet : tf-idf · tensorflow · fastapi
-
----
-
-## prérequis
-
-- python 3.10+
-- le fichier `news.csv` doit se trouver dans `data/news.csv`
+Pipeline NLP complet: TF-IDF + TensorFlow + FastAPI.
 
 ---
 
-## installation
+## Prerequis
+
+- Python 3.10+
+- Le fichier `data/news.csv`
+- (Recommande) environnement virtuel `.venv`
+
+---
+
+## Installation
+
+Depuis `fake_news_nlp/`:
 
 ```bash
-# 1. créer et activer l'environnement virtuel
+# 1) creer l'environnement virtuel
 python -m venv .venv
-# windows
-.venv\Scripts\activate
-# mac/linux
+
+# 2) activer
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+# macOS/Linux
 source .venv/bin/activate
 
-# 2. installer les dépendances
+# 3) installer les dependances
 pip install -r requirements.txt
 
-# 3. télécharger le modèle spacy
+# 4) modele spaCy
 python -m spacy download en_core_web_sm
-
-# 4. télécharger les ressources nltk (à la première exécution du notebook)
-# les cellules du notebook s'en chargent automatiquement
 ```
 
 ---
 
-## lancer le notebook
+## Entrainement via notebook
 
 ```bash
 jupyter notebook notebook/ecf_fake_news.ipynb
 ```
 
-exécuter toutes les cellules dans l'ordre. à la fin, les fichiers suivants seront générés :
+Executer les cellules dans l'ordre pour generer:
+
 - `models/best_model.keras`
 - `models/vectorizer.pkl`
+- `models/best_model_lstm.keras`
 - `data/titles_clean.csv`
 
 ---
 
-## lancer l'api
+## Lancer l'API en local
 
-après avoir exécuté le notebook :
+Deux options valides:
+
+### Option A (depuis `fake_news_nlp/`)
 
 ```bash
-uvicorn api.main:app --reload
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-l'api est accessible sur `http://localhost:8000`  
-la documentation interactive est sur `http://localhost:8000/docs`
+### Option B (depuis `fake_news_nlp/api/`)
+
+```bash
+python main.py
+```
+
+Ensuite:
+
+- API: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ---
 
-## endpoints disponibles
+## Endpoints
 
-| méthode | route | description |
+| Methode | Route | Description |
 |---|---|---|
-| GET | `/health` | vérifie que l'api est opérationnelle |
-| POST | `/predict` | prédit la classe d'un titre |
-| POST | `/predict/batch` | prédit la classe d'une liste de titres |
+| GET | `/health` | verification de disponibilite API/modele |
+| POST | `/predict` | prediction d'un titre |
+| POST | `/predict/batch` | prediction d'une liste de titres |
 
-### exemple `/predict`
+---
 
-```bash
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Scientists discover new treatment for common disease"}'
-```
+## Test detaille dans Swagger (`/docs`)
 
-réponse :
+### 1) Sante API
+
+- Ouvrir `GET /health`
+- Cliquer `Try it out` puis `Execute`
+- Attendu: code `200` et `{"status":"ok", ...}`
+
+### 2) Prediction unitaire
+
+`POST /predict` -> body:
+
 ```json
 {
-  "title": "Scientists discover new treatment for common disease",
-  "label": "REAL",
-  "confidence": 0.87
+  "title": "Scientists discover new treatment for common disease"
 }
 ```
 
+Attendu:
+
+- code `200`
+- `label` dans `REAL` ou `FAKE`
+- `confidence` entre `0` et `1`
+
+### 3) Prediction batch
+
+`POST /predict/batch` -> body:
+
+```json
+{
+  "titles": [
+    "Central bank raises interest rates by 0.25 points",
+    "You wont believe this miracle cure",
+    "Parliament votes on new environmental law"
+  ]
+}
+```
+
+Attendu: code `200` + une reponse par titre.
+
+### 4) Validation des erreurs (important)
+
+- `/predict` avec titre vide -> `422`
+- `/predict` avec titre > 300 caracteres -> `400`
+- `/predict/batch` avec liste vide -> `400`
+- `/predict/batch` avec plus de 50 titres -> `400`
+
 ---
 
-## structure du projet
+## Exemple cURL
 
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Scientists discover new treatment for common disease"}'
 ```
+
+---
+
+## Variables d'environnement (optionnel)
+
+Le backend lit:
+
+- `MODEL_PATH` (defaut: `../models/best_model.keras`)
+- `VECTORIZER_PATH` (defaut: `../models/vectorizer.pkl`)
+
+Tu peux les definir dans `.env` si tu changes l'arborescence.
+
+---
+
+## Structure projet
+
+```text
 fake_news_nlp/
-├── notebook/
-│   └── ecf_fake_news.ipynb
 ├── api/
 │   └── main.py
+├── data/
+│   ├── news.csv
+│   └── titles_clean.csv
 ├── models/
 │   ├── best_model.keras
+│   ├── best_model_lstm.keras
 │   └── vectorizer.pkl
-├── data/
-│   └── titles_clean.csv
-├── .env
-├── .gitignore
+├── notebook/
+│   └── ecf_fake_news.ipynb
 ├── requirements.txt
 ├── README.md
 └── skills.md
