@@ -2,7 +2,7 @@
 
 Projet principal: `fake_news_nlp` (NLP + TensorFlow + FastAPI).
 
-## Setup rapide
+## Setup
 
 Depuis la racine `ECF4`:
 
@@ -51,10 +51,6 @@ URLs:
 - `POST /predict`
 - `POST /predict/batch`
 
-## Notes Git
+## Guide de test
 
-Le repo ignore maintenant globalement:
-- `.venv/`
-- `.claude/`
-- caches Python/Jupyter
-- artefacts `fake_news_nlp/models/*` et `fake_news_nlp/data/*.csv`
+- Voir le guide detaille: `Guide_test_API.md`

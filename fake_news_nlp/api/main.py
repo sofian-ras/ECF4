@@ -126,10 +126,7 @@ def predict_one(title: str) -> dict:
     confidence = round(score if score >= 0.5 else 1 - score, 4)
     return {"title": title, "label": label, "confidence": confidence}
 
-
-# ---------------------------------------------------------------------------
 # schémas pydantic
-# ---------------------------------------------------------------------------
 
 
 class PredictRequest(BaseModel):
@@ -163,9 +160,7 @@ class BatchRequest(BaseModel):
     }
 
 
-# ---------------------------------------------------------------------------
 # application fastapi
-# ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="fake news detector",
