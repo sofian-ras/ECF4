@@ -6,6 +6,7 @@ endpoints : /health, /predict, /predict/batch
 
 import os
 import re
+from pathlib import Path
 
 import joblib
 import numpy as np
@@ -20,13 +21,34 @@ nltk.download("stopwords", quiet=True)
 
 load_dotenv()
 
-MODEL_PATH = os.getenv("MODEL_PATH", "../models/best_model.keras")
-VECTORIZER_PATH = os.getenv("VECTORIZER_PATH", "../models/vectorizer.pkl")
+API_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = API_DIR.parent
+
+
+def resolve_artifact_path(raw_value: str | None, default_rel_path: str) -> Path:
+    value = raw_value or default_rel_path
+    path = Path(value)
+    if path.is_absolute():
+        return path
+
+    candidates = [
+        (PROJECT_DIR / path).resolve(),
+        (API_DIR / path).resolve(),
+        (Path.cwd() / path).resolve(),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+MODEL_PATH = resolve_artifact_path(os.getenv("MODEL_PATH"), "models/best_model.keras")
+VECTORIZER_PATH = resolve_artifact_path(os.getenv("VECTORIZER_PATH"), "models/vectorizer.pkl")
 
 try:
     import tensorflow as tf
-    model = tf.keras.models.load_model(MODEL_PATH)
-    vectorizer = joblib.load(VECTORIZER_PATH)
+    model = tf.keras.models.load_model(str(MODEL_PATH))
+    vectorizer = joblib.load(str(VECTORIZER_PATH))
     nlp = spacy.load("en_core_web_sm")
     print("modèle et vectoriseur chargés avec succès.")
 except Exception as e:
