@@ -1,0 +1,14 @@
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+nltk
+spacy
+tensorflow
+joblib
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+ipykernel
