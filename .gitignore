@@ -1,7 +1,6 @@
 .venv/
 venv/
 env/
-.claude/
 
 # python
 __pycache__/
